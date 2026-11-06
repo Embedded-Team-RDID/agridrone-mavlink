@@ -77,7 +77,7 @@ RGB follow uses the appended float extensions `gain_d`, `gain_t`, `gain_vel`
 (finite 0..1, defaults 0.5) and `uint8_t bbox_gains_valid`:
 
 - Desired person bbox height / displayed image width: `0.9 / (1 + 3.5 * gain_d)`.
-- Relative symmetric tolerance: `0.25 + 0.75 * gain_t`.
+- Relative symmetric tolerance: `0.25 * (1 - gain_t)`; 0 gives ±25%, default 0.5 gives ±12.5%, 1 removes the deadband.
 - Outside that band, subtract the nearest band edge and divide by the desired ratio.
   Forward/backward velocity is `2 m/s * gain_vel * clamp(error, -1, 1)`.
   Positive velocity approaches a smaller bbox; zero gain disables translation.
