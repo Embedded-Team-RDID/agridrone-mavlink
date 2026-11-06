@@ -406,10 +406,11 @@
       <field type="float" name="reserved_f32_0">Reserved legacy wire slot. Send zero; receivers ignore it.</field>
       <field type="float" name="reserved_f32_1">Reserved legacy wire slot. Send zero; receivers ignore it.</field>
       <field type="uint8_t" name="reserved_u8_2">Reserved legacy wire slot. Send zero; receivers ignore it.</field>
-      <field type="float" name="gain_d">RGB bbox distance gain, finite 0 to 1, default 0.5. Desired bbox height / image width = 0.9 / (1 + 3.5 * gain_d). Applied with gain_t and gain_vel only when bbox_gains_valid is 1. Reserved slots are ignored by bbox-follow receivers.</field>
+      <field type="float" name="gain_d">RGB bbox distance gain, finite 0 to 1, default 0.5. Desired bbox height / image width = 0.9 / (1 + 3.5 * gain_d). Applied atomically with gain_t, gain_vel and vel_max when bbox_gains_valid is 2. Reserved slots are ignored by bbox-follow receivers.</field>
       <field type="float" name="gain_t">RGB bbox deadband gain, finite 0 to 1, default 0.5. Relative tolerance around desired bbox height = 0.25 * (1 - gain_t). 0 gives +/-25 percent, 0.5 gives +/-12.5 percent, 1 removes the deadband; any nonzero bbox size error commands translation.</field>
-      <field type="float" name="gain_vel">RGB follow velocity multiplier, finite 0 to 1, default 0.5. Forward/backward velocity = 2 m/s * gain_vel * bounded normalized bbox error outside the deadband. Zero disables translation.</field>
-      <field type="uint8_t" name="bbox_gains_valid">0: preserve all three bbox gains. 1: validate and apply gain_d, gain_t, gain_vel atomically, including explicit zeros. Other values preserve gains. Invalid gains must never prevent valid OFF flags from taking effect. Reserved slots never enable bbox gain updates.</field>
+      <field type="float" name="gain_vel">RGB follow proportional coefficient, finite 0 to vel_max, default 0.5. Forward/backward velocity = clamp(gain_vel * relative bbox error outside the deadband, -vel_max, +vel_max). Zero disables translation.</field>
+      <field type="uint8_t" name="bbox_gains_valid">0: preserve numeric controls. 1: legacy triplet (gain_d, gain_t, gain_vel in 0 to 1), preserve current vel_max and validate the resulting tuple. 2: validate and apply gain_d, gain_t, gain_vel, vel_max atomically, including explicit zeros. Other values preserve numeric controls. Invalid controls must never prevent valid OFF flags from taking effect. Reserved slots never enable numeric updates.</field>
+      <field type="float" name="vel_max" units="m/s">Maximum absolute horizontal follow speed in m/s, finite and nonnegative, default 2. No fixed 2 m/s ceiling. gain_vel must not exceed vel_max. Applied only when bbox_gains_valid is 2; explicit zero stops translation.</field>
     </message>
 
     <!-- Message 7: Per-hop stream bandwidth (spec docs/superpowers/specs/2026-10-20-stream-bandwidth-design.md) -->

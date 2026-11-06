@@ -73,23 +73,29 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 ## THACO RGB bbox following control
 
 `CC_AI_VISION_CONTROL` (42015) retains its three flags and legacy wire slots.
-RGB follow uses the appended float extensions `gain_d`, `gain_t`, `gain_vel`
-(finite 0..1, defaults 0.5) and `uint8_t bbox_gains_valid`:
+RGB follow uses `gain_d`, `gain_t`, `gain_vel` and `vel_max`:
 
+- `gain_d` and `gain_t`: finite 0..1, defaults 0.5.
 - Desired person bbox height / displayed image width: `0.9 / (1 + 3.5 * gain_d)`.
-- Relative symmetric tolerance: `0.25 * (1 - gain_t)`; 0 gives ±25%, default 0.5 gives ±12.5%, 1 removes the deadband.
+- Relative symmetric tolerance: `0.25 * (1 - gain_t)`; 1 removes the deadband.
 - Outside that band, subtract the nearest band edge and divide by the desired ratio.
-  Forward/backward velocity is `2 m/s * gain_vel * clamp(error, -1, 1)`.
-  Positive velocity approaches a smaller bbox; zero gain disables translation.
-- `bbox_gains_valid=1` applies all three gains atomically, including zeros;
-  `0` preserves them. Invalid presence/gains preserve all gains and must not block OFF.
+  Forward/backward velocity is `clamp(gain_vel * error, -vel_max, +vel_max)`.
+- `gain_vel` is the direct proportional coefficient in `0..vel_max`, default 0.5.
+  `vel_max` is a finite nonnegative speed in m/s, default 2; 3 means 3 m/s.
+  Zero coefficient or zero cap disables horizontal translation.
+- `bbox_gains_valid=2` applies all four controls atomically, including explicit zeros;
+  `0` preserves them. Legacy presence 1 accepts only the old 0..1 triplet, preserves
+  the current cap and validates the resulting tuple. Other values preserve controls.
+  Invalid numeric controls must never block valid OFF flags.
+- Existing numeric values are retained on upgrade; an absent cap defaults to 2.
+  The coefficient now has direct P semantics. Update Companion and QGC together.
 
 The retired metric controls and velocity/acceleration feedforward gains have been
 removed. Five reserved slots keep their original byte offsets; send zero in them.
 They are not configuration parameters and have no runtime control meaning.
 Use matching Companion/QGC versions for RGB following.
-Offsets: gain_d 14, gain_t 18, gain_vel 22, bbox_gains_valid 26.
-Minimum payload 3, maximum 27 bytes; CRC_EXTRA 211 remains unchanged.
+Offsets: gain_d 14, gain_t 18, gain_vel 22, bbox_gains_valid 26, vel_max 27.
+Minimum payload 3, maximum 31 bytes; CRC_EXTRA 211 remains unchanged.
 These gains neither request flight mode nor bypass FC admission or target identity checks.
 
 Generate each consumer into its own build directory using the pinned generator;
