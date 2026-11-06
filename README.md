@@ -84,10 +84,10 @@ RGB follow uses the appended float extensions `gain_d`, `gain_t`, `gain_vel`
 - `bbox_gains_valid=1` applies all three gains atomically, including zeros;
   `0` preserves them. Invalid presence/gains preserve all gains and must not block OFF.
 
-Legacy distance/threshold (dm), vel_gain/acc_gain and gains_valid retain their
-original layout for wire compatibility. Bbox-follow receivers ignore them.
-Legacy receivers ignore the appended extensions, so use matching Companion/QGC
-versions for RGB following. No field silently acquires a new meaning.
+The retired metric controls and velocity/acceleration feedforward gains have been
+removed. Five reserved slots keep their original byte offsets; send zero in them.
+They are not configuration parameters and have no runtime control meaning.
+Use matching Companion/QGC versions for RGB following.
 Offsets: gain_d 14, gain_t 18, gain_vel 22, bbox_gains_valid 26.
 Minimum payload 3, maximum 27 bytes; CRC_EXTRA 211 remains unchanged.
 These gains neither request flight mode nor bypass FC admission or target identity checks.
