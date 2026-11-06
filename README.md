@@ -70,50 +70,31 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 > The sub-topics of [Using MAVLink Libraries](https://mavlink.io/en/getting_started/use_libraries.html) explain how to use the generated libraries.
 
 
-## THACO vision following control
+## THACO RGB bbox following control
 
-`CC_AI_VISION_CONTROL` (42015) retains the `bounding_box`, `tracking` and
-`following` flags and adds backward-compatible MAVLink2 extensions:
+`CC_AI_VISION_CONTROL` (42015) retains its three flags and legacy wire slots.
+RGB follow uses the appended float extensions `gain_d`, `gain_t`, `gain_vel`
+(finite 0..1, defaults 0.5) and `uint8_t bbox_gains_valid`:
 
-| Field | Wire unit | Meaning |
-| --- | --- | --- |
-| `distance` | 0.1 m (`dm`) | Desired following distance (centre); `30` means 3 m. |
-| `threshold` | 0.1 m (`dm`) | Tolerance radius (plus/minus); `5` means 0.5 m. |
+- Desired person bbox height / displayed image width: `0.9 / (1 + 3.5 * gain_d)`.
+- Relative symmetric tolerance: `0.25 + 0.75 * gain_t`.
+- Outside that band, subtract the nearest band edge and divide by the desired ratio.
+  Forward/backward velocity is `2 m/s * gain_vel * clamp(error, -1, 1)`.
+  Positive velocity approaches a smaller bbox; zero gain disables translation.
+- `bbox_gains_valid=1` applies all three gains atomically, including zeros;
+  `0` preserves them. Invalid presence/gains preserve all gains and must not block OFF.
 
-Two float extensions, `vel_gain` and `acc_gain`, multiply target velocity and acceleration
-feedforward respectively (dimensionless, finite0..2, defaults0). Position and yaw remain
-direct setpoints. A final `uint8_t gains_valid` distinguishes explicit zero gains (`1`)
-from legacy packets (`0`, keep both current gains). Validate/apply gains as one pair;
-invalid gains/presence must not prevent a valid Following OFF. These are feedforward
-multipliers, not FC motion limits. Gains do not enable Following or bypass admission.
-Offsets: vel_gain5, acc_gain9, gains_valid13; payload min3/max14, CRC_EXTRA211 unchanged.
-Old receivers ignore new extensions. New receivers preserve gains on old packets.
+Legacy distance/threshold (dm), vel_gain/acc_gain and gains_valid retain their
+original layout for wire compatibility. Bbox-follow receivers ignore them.
+Legacy receivers ignore the appended extensions, so use matching Companion/QGC
+versions for RGB following. No field silently acquires a new meaning.
+Offsets: gain_d 14, gain_t 18, gain_vel 22, bbox_gains_valid 26.
+Minimum payload 3, maximum 27 bytes; CRC_EXTRA 211 remains unchanged.
+These gains neither request flight mode nor bypass FC admission or target identity checks.
 
-The acceptable band is inclusive: `[distance - threshold, distance + threshold]`. For example,
-`distance=40, threshold=3` requests following around4m with tolerance0.3m,
-meaning3.7..4.3m. Position goal remains4m. Following requires both `tracking=1` and
-`following=1`, together with the flight controller's Offboard admission checks.
-
-A zero byte leaves that setting unchanged, including when an older sender omits
-both extensions. The receiver must validate the resulting pair against its flight
-operating limits before applying either setting: distance and width must be
-positive, and width must be less than distance. Invalid settings must leave both
-current settings unchanged. These bytes request runtime settings; they do not
-imply persistence or acknowledge that the receiver applied them.
-
-The original three bytes remain at offsets 0–2; distance and threshold occupy
-offsets 3 and 4. Payload minimum length stays 3, maximum length becomes14 and
-CRC_EXTRA stays 211. Older receivers ignore the new fields. Regenerate consumers
-from this XML; generated C pack functions take distance, threshold, vel_gain, acc_gain, gains_valid
-(`0, 0, 0, 0, 0` preserves configured values). Applications must explicitly handle
-these fields to support changing the hover band from the GCS.
-
-In the THACO superproject, generate Companion headers through the parent helper:
-
-```bash
-python3 sync_mavlink.py --lang C++11 \
-  --output Companion_Computer/build/cc_mavlink/generated/mavlink
-```
+Generate each consumer into its own build directory using the pinned generator;
+never edit generated headers. Companion uses the superproject sync helper;
+QGC resolves latest main during configure as documented in its custom/README.md.
 
 ## Key Links
 
