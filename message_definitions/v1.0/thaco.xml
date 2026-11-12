@@ -427,6 +427,18 @@
       <field type="uint8_t" name="valid" enum="CC_BANDWIDTH_VALID" display="bitmask">Owners with fresh, valid data</field>
     </message>
 
+    <!-- Message 8: Deployed service versions (Companion tab) -->
+    <message id="42017" name="CC_SERVICE_VERSION">
+      <description>What one companion service runs, from the deploy record on the companion. The agent sends one service per message in turn (count services, index 0 .. count-1), at 1 Hz, so a list of five refreshes every 5 s.</description>
+      <field type="uint32_t" name="built_at" units="s">Image build time, Unix seconds UTC (0 = unknown)</field>
+      <field type="uint32_t" name="deployed_at" units="s">Deploy time, Unix seconds UTC (0 = unknown)</field>
+      <field type="uint8_t" name="index">This service's index, 0 .. count-1</field>
+      <field type="uint8_t" name="count">Number of services in the deploy record</field>
+      <field type="char[16]" name="service">Service name, e.g. edge-camera</field>
+      <field type="char[16]" name="version">Image version, e.g. v1.0.12; empty when the image has none</field>
+      <field type="char[12]" name="revision">First 12 hex digits of the image's source commit</field>
+    </message>
+
     <!-- ================================================================= -->
     <!-- Companion Computer Linux OS Configuration Subsystem Messages (42100 - 42108)  -->
     <!-- Independent from ROS 2/MAVROS. Managed by thaco-config-agent.     -->
