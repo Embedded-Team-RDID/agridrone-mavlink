@@ -70,6 +70,18 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 > The sub-topics of [Using MAVLink Libraries](https://mavlink.io/en/getting_started/use_libraries.html) explain how to use the generated libraries.
 
 
+## THACO camera stream mode
+
+`CC_STREAM_MODE` is a `PARAM_EXT` UINT8 parameter owned by Companion component 191.
+The `CC_STREAM_MODE` enum defines 0 Off, 1 Video, 2 Vision and 3 Depth. Existing
+values and all message layouts/CRCs are unchanged. QGC presents Video / Off /
+Vision / Depth. Depth publishes a colourized camera depth image on the same
+RTSP `/camera` path, using the Video encoder settings and one encoder at a time;
+it does not enable obstacle avoidance or Vision inference. Invalid depth is black.
+The camera confirms Depth only after a valid depth frame and publisher readiness;
+the normal PARAM_EXT apply/readback/save flow still applies. Upgrade Companion
+and QGC together before selecting value 3; older Companion schemas reject it.
+
 ## THACO RGB bbox following control
 
 `CC_AI_VISION_CONTROL` (42015) retains its three flags and legacy wire slots.

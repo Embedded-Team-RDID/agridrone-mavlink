@@ -96,6 +96,14 @@
       </entry>
     </enum>
 
+    <enum name="CC_STREAM_MODE">
+      <description>CC_STREAM_MODE PARAM_EXT parameter (UINT8), confirmed by the Companion camera owner. Off, RGB Video, RGB Vision and colourized Depth share a single encoder and RTSP camera path. Existing values remain compatible.</description>
+      <entry value="0" name="CC_STREAM_MODE_OFF"><description>Stop the video publisher.</description></entry>
+      <entry value="1" name="CC_STREAM_MODE_VIDEO"><description>Publish RGB video without Vision overlays.</description></entry>
+      <entry value="2" name="CC_STREAM_MODE_VISION"><description>Publish RGB video with Vision overlays and enable the inference input.</description></entry>
+      <entry value="3" name="CC_STREAM_MODE_DEPTH"><description>Publish colourized camera depth without Vision inference. Requires valid depth frames; this mode does not enable obstacle avoidance.</description></entry>
+    </enum>
+
     <!-- Camera Runtime Status -->
     <enum name="CC_PUBLISH_STATUS">
       <description>RTSP publisher lifecycle, independent of capture and inference.</description>
