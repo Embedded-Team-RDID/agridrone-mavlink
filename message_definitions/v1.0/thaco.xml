@@ -447,6 +447,19 @@
       <field type="char[12]" name="revision">First 12 hex digits of the image's source commit</field>
     </message>
 
+    <message id="42018" name="CC_OA_CONTROL">
+      <description>OA control and tuning snapshot. QGC sends only operator changes to companion component 195. Companion replies and broadcasts state at 1 Hz with fresh FC heartbeat, including OFF. operation: 0 state, 1 enable only, 2 complete OA tuning. result: 0 applied/persisted, 1 invalid, 2 persistence failed, 3 FC unavailable. Enable is session-only, boots OFF. FC values are readbacks only; write FC using standard PARAM_SET/Fact. Unset fc_valid bits mean unknown, never zero defaults. OA values order is documented in README. No ARM or flight-mode authority is granted by this packet.</description>
+      <field type="uint64_t" name="request_id">Monotonically increasing GCS request ID; state echoes last handled request. Zero at boot.</field>
+      <field type="float[34]" name="oa_values">Complete OA tuning tuple, ordered as README CC_OA_CONTROL table; validate atomically. Booleans and history are exact integers.</field>
+      <field type="float[12]" name="fc_values">FC readback tuple ordered as README; GCS copies are informational and never applied to FC or trusted by CC.</field>
+      <field type="uint16_t" name="fc_valid">Bit i indicates fresh FC readback fc_values[i].</field>
+      <field type="uint8_t" name="target_system">Destination system; state broadcasts use 0.</field>
+      <field type="uint8_t" name="target_component">Destination component; GCS commands require 195; state uses 0.</field>
+      <field type="uint8_t" name="enabled">0 stop OA setpoints, 1 permit OA subject to existing guards.</field>
+      <field type="uint8_t" name="operation">0 state, 1 enable, 2 OA tuning.</field>
+      <field type="uint8_t" name="result">0 applied, 1 invalid, 2 persistence failed, 3 FC unavailable.</field>
+    </message>
+
     <!-- ================================================================= -->
     <!-- Companion Computer Linux OS Configuration Subsystem Messages (42100 - 42108)  -->
     <!-- Independent from ROS 2/MAVROS. Managed by thaco-config-agent.     -->

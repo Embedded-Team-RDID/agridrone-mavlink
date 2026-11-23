@@ -120,3 +120,68 @@ QGC resolves latest main during configure as documented in its custom/README.md.
 * [Discussion/Support](https://mavlink.io/en/#support)
 * [Contributing](https://mavlink.io/en/contributing/contributing.html)
 * [License](https://mavlink.io/en/#license)
+
+## CC_OA_CONTROL (42018)
+
+Source CC 1/195, GCS 254/190 or 255/190. Payload 199 bytes; MAVLink2.
+The enable switch is the first operator control; MAVLink sorts base fields by type.
+QGC sends changes once and waits for the echoed request ID; telemetry never triggers writes.
+Fresh FC heartbeat gates enabling/tuning; OFF remains admissible. CC persists accepted
+OA tuning atomically before success, never the enable flag. Firmware parameters remain FC-owned.
+Invalid tuning preserves the old tuple; disabling is still honored.
+
+| Index | oa_values | Range | 2 m/s default |
+|---|---|---|---|
+| 0 | `speed_m_s` | 0.1..6 | 2.0 |
+| 1 | `speed_lead_m_s` | 0.3..6 | 1.0 |
+| 2 | `acceleration_m_s2` | 1..15 | 6.0 |
+| 3 | `jerk_m_s3` | 1..160 | 40.0 |
+| 4 | `body_radius_m` | 0.3..1 | 0.4 |
+| 5 | `clearance_m` | 0.7..2 | 0.7 |
+| 6 | `tracking_margin_m` | 0..1 | 0.4 |
+| 7 | `horizon_m` | 2..19 | 2.5 |
+| 8 | `history_frames` | 1..30 | 30 |
+| 9 | `obstacle_memory_s` | 0.5..10 | 5.0 |
+| 10 | `obstacle_voxel_m` | 0.05..0.3 | 0.1 |
+| 11 | `sensor_range_m` | 3..20 | 10.0 |
+| 12 | `heading_limit_deg` | 10..85 | 70.0 |
+| 13 | `heading_step_deg` | 1..10 | 5.0 |
+| 14 | `path_step_m` | 0.05..0.3 | 0.15 |
+| 15 | `turn_penalty_m` | 0..5 | 0.6 |
+| 16 | `planning_time_s` | 1..4 | 3.0 |
+| 17 | `braking_tail_required` | 0..1 | True |
+| 18 | `arrival_filter_time_constants` | 2..6 | 6.0 |
+| 19 | `reaction_time_s` | 0.15..1 | 0.2 |
+| 20 | `tracking_response_s` | 0.1..1 | 0.25 |
+| 21 | `minimum_speed_ratio` | 0.3..1 | 1.0 |
+| 22 | `time_cost_m_s` | 0..3 | 0.5 |
+| 23 | `route_resolution_m` | 0.2..0.5 | 0.25 |
+| 24 | `route_lookahead_m` | 0.5..6 | 3.0 |
+| 25 | `route_heading_limit_deg` | 5..85 | 25.0 |
+| 26 | `route_clearance_weight` | 0..5 | 1.0 |
+| 27 | `tracking_recovery_s` | 0.5..3 | 1.5 |
+| 28 | `setpoint_lookahead_s` | 0.25..0.75 | 0.3 |
+| 29 | `yaw_rate_rad_s` | 0.1..1.5 | 1.0 |
+| 30 | `yaw_follow_path` | 0..1 | True |
+| 31 | `mission_return_alignment_deg` | 5..45 | 5.0 |
+| 32 | `mission_clear_time_s` | 0.5..3 | 1.0 |
+| 33 | `mission_return_min_speed_ratio` | 0..1 | 0.9 |
+
+Hardware yaw_follow_path defaults to 1; SITL defaults to 0. Geometry, calibration,
+clock and transport are startup-only. Cross-field checks also require body + gap +
+reserve ≤3 m, horizon ≤sensor range−1 m and preferred angle ≤search angle.
+
+| Index | fc_values (FC readback only) | SITL 2 m/s preset |
+|---|---|---|
+| 0 | `SYS_VEHICLE_RESP` | -0.4 |
+| 1 | `MPC_XY_VEL_ALL` | -10.0 |
+| 2 | `MPC_XY_VEL_MAX` | 2.0 |
+| 3 | `MPC_XY_CRUISE` | 2.0 |
+| 4 | `MPC_XY_VEL_P_ACC` | 3.0 |
+| 5 | `MPC_ACC_HOR_MAX` | 6.0 |
+| 6 | `MPC_ACC_HOR` | 6.0 |
+| 7 | `MPC_JERK_AUTO` | 20.0 |
+| 8 | `MPC_JERK_MAX` | 40.0 |
+| 9 | `MPC_TILTMAX_AIR` | 40.0 |
+| 10 | `MPC_YAWRAUTO_MAX` | 60.0 |
+| 11 | `NAV_ACC_RAD` | 0.4 |
